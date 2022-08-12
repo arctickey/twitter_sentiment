@@ -1,21 +1,7 @@
 # syntax=docker/dockerfile:1
-
-FROM python:3.9-slim-buster
-
-ENV POETRY_VERSION=1.1.13 \
-    POETRY_VIRTUALENVS_CREATE=false
-
-# Install poetry
-RUN pip install "poetry==$POETRY_VERSION"
-
-# Copy only requirements to cache them in docker layer
+FROM python:3.10-slim
+RUN apt-get update && apt-get install -y git && apt-get -y install curl
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 WORKDIR /code
 COPY poetry.lock pyproject.toml /code/
-
-# Project initialization:
-RUN poetry install --no-interaction --no-ansi --no-root --no-dev
-
-# Copy Python code to the Docker image
 COPY twitter_sentiment /code/twitter_sentiment/
-
-CMD [ "python", "twitter_sentiment/foo.py"]
