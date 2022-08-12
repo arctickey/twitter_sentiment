@@ -1,0 +1,30 @@
+site_name: twitter-sentiment
+repo_url: https://github.com/fpgmaas/twitter-sentiment
+site_url: https://fpgmaas.github.io/twitter-sentiment
+site_description: Project to analyze tweets sentiment
+site_author: arctickey
+
+nav:
+  - Home: index.md
+  - Modules: modules.md
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+            setup_commands:
+                - import sys
+                - sys.path.append('../')
+copyright: Maintained by arctickey.
+theme:
+  name: material
+  feature:
+    tabs: true
+  palette:
+    primary: white
+    accent: blue
+markdown_extensions:
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
