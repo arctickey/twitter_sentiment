@@ -5,6 +5,10 @@ from kafka import KafkaConsumer
 
 log = logging.getLogger("root")
 
+"""
+org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0
+"""
+
 
 class TweetConsumer:
     def __init__(self, topic_name: str) -> None:

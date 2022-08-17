@@ -3,10 +3,10 @@
 {
 	"name": "Twitter sentiment",
 	// Sets the run context to one level up instead of the .devcontainer folder.
-	"dockerComposeFile": "docker-compose.yaml",
+	"context": "..",
+	"dockerComposeFile": "../docker-compose.yaml",
 	"service": "app",
 	"workspaceFolder": "/workspace",
-	// "context": "..",
 	// "dockerFile": "../Dockerfile",
 	"runArgs": [
 		"--env-file",

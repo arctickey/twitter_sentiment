@@ -4,4 +4,4 @@ RUN apt-get update && apt-get install -y git && apt-get -y install curl
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 WORKDIR /code
 COPY poetry.lock pyproject.toml /code/
-COPY twitter_sentiment /code/twitter_sentiment/
+COPY dags /code/dags/

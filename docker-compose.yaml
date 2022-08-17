@@ -1,0 +1,68 @@
+version: '3.7'
+services:
+    app:
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        container_name: app
+        volumes:
+            - ..:/workspace
+        entrypoint: ''
+        command: sleep infinity
+    db:
+        image: postgres:9.6
+        container_name: db
+        user: root
+        environment:
+            - POSTGRES_USER=admin
+            - POSTGRES_PASSWORD=admin
+            - POSTGRES_DB=db
+        volumes:
+            - ./db:/var/lib/postgresql
+    zookeeper:
+        image: wurstmeister/zookeeper
+        container_name: zookeeper_container
+        ports:
+            - "2181:2181"
+
+    kafka:
+        image: wurstmeister/kafka
+        container_name: kafka_container
+        ports:
+            - "9092:9092"
+        environment:
+            KAFKA_ADVERTISED_HOST_NAME: kafka
+            KAFKA_CREATE_TOPICS: "tweets:1:1"
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+    postgres:
+        image: postgres:9.6
+        environment:
+        - POSTGRES_USER=airflow
+        - POSTGRES_PASSWORD=airflow
+        - POSTGRES_DB=airflow
+    airflow:
+        build: './airflow_docker'
+        restart: always
+        mem_limit: 2048m
+        depends_on:
+            - postgres
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+        ports:
+            - "8080:8080"
+        command: webserver
+        env_file:
+            - .env
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+    spark:
+        image: jupyter/pyspark-notebook
+        ports:
+            - "8888:8888"
+            - "4040-4080:4040-4080"
