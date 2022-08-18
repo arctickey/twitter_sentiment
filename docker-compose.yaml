@@ -40,27 +40,32 @@ services:
     postgres:
         image: postgres:9.6
         environment:
-        - POSTGRES_USER=airflow
-        - POSTGRES_PASSWORD=airflow
-        - POSTGRES_DB=airflow
-    airflow:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+    scheduler:
         build: './airflow_docker'
+        command: scheduler
         restart: always
-        mem_limit: 2048m
         depends_on:
             - postgres
-        volumes:
-            - ./dags:/usr/local/airflow/dags
-        ports:
-            - "8080:8080"
-        command: webserver
         env_file:
             - .env
-        healthcheck:
-            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
-            interval: 30s
-            timeout: 30s
-            retries: 3
+        volumes:
+            - ./dags:/opt/airflow/dags
+    webserver:
+        build: './airflow_docker'
+        command: bash -c "airflow db init && airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin && airflow webserver"
+        restart: always
+        depends_on:
+            - postgres
+            - scheduler
+        env_file:
+            - .env
+        volumes:
+            - ./dags:/opt/airflow/dags
+        ports:
+            - "8080:8080"
     spark:
         image: jupyter/pyspark-notebook
         ports:
