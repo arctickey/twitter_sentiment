@@ -4,6 +4,7 @@ import os
 
 import airflow
 from airflow import DAG
+from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from src.config import Config
 from src.logger import TweetLogger
@@ -32,7 +33,7 @@ dag = DAG(
     schedule_interval="@once",
     default_args=default_args,
 )
-
+task0 = DummyOperator(task_id="dummy", dag=dag)
 
 producer = TweetProducer()
 task1a = PythonOperator(
@@ -53,4 +54,5 @@ task1b = PythonOperator(
     dag=dag,
 )
 
-task1a >> task1b
+
+task0 >> [task1a, task1b]

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twitter_sentiment"
-version = "0.0.1"
+version = "0.1.0"
 description = "Project to analyze tweets sentiment"
 authors = ["arctickey <ffilipchrzuszcz1@gmail.com>"]
 repository = "https://github.com/fpgmaas/twitter-sentiment"
