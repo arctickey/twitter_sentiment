@@ -5,6 +5,7 @@ import pyspark.sql.functions as F
 from kafka import KafkaConsumer
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StringType, StructField, StructType
+from src.config import Config
 
 log = logging.getLogger("root").setLevel(logging.ERROR)
 
@@ -60,5 +61,5 @@ class TweetConsumer:
 
     def _append_to_db(self, df: DataFrame, epoch_id: int) -> None:
         df.write.mode("append").format("jdbc").option("url", "jdbc:postgresql://db:5432/db").option(
-            "dbtable", "tweets"
+            "dbtable", Config.RAW_TABLE_NAME
         ).option("user", "admin").option("password", "admin").option("driver", "org.postgresql.Driver").save()

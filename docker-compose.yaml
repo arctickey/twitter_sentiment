@@ -53,6 +53,8 @@ services:
             - .env
         volumes:
             - ./dags:/opt/airflow/dags
+            - ./db:/opt/airflow/db
+            - ./models:/opt/airflow/models
     webserver:
         build: './airflow_docker'
         command: bash -c "airflow db init && airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin && airflow webserver"
@@ -64,6 +66,8 @@ services:
             - .env
         volumes:
             - ./dags:/opt/airflow/dags
+            - ./db:/opt/airflow/db
+            - ./models:/opt/airflow/models
         ports:
             - "8080:8080"
     spark:
