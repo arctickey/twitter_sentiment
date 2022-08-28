@@ -13,7 +13,5 @@ RUN export JAVA_HOME
 
 USER airflow
 
-WORKDIR /app
-
 COPY requirements.txt .
 RUN pip install --user -r requirements.txt

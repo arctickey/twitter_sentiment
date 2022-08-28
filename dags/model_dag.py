@@ -14,9 +14,12 @@ from src.step_1_preprocess_data.preprocess_data import (
 )
 from src.step_2_train_model.predict import predict
 from src.step_2_train_model.train_model import train_model_and_save
+from transformers import BertForSequenceClassification, BertTokenizer
 
+# %%
 log = logging.getLogger("root")
 log.addHandler(TweetLogger())
+
 
 default_args = {
     "owner": "Filip Chrzuszcz",
@@ -29,8 +32,14 @@ default_args = {
 }
 
 
+model_path = "./models/bert-base-uncased/"
+tokenizer = BertTokenizer.from_pretrained(model_path, local_files_only=True)
+
+model = BertForSequenceClassification.from_pretrained(model_path, num_labels=2, local_files_only=True)
+
+
 dag = DAG(
-    "tweets sentiment predictor",
+    "tweets_sentiment_predictor",
     description="Preprocess tweets and determine sentiment",
     schedule_interval="*/10 * * * *",
     default_args=default_args,
@@ -44,17 +53,17 @@ def branch():
         return "predict_stream"
 
 
-branch_task = BranchPythonOperator(task_id="branch", python_callable=branch, trigger_rule="all_done", dag=dag)
+branch_task = BranchPythonOperator(task_id="branch_task", python_callable=branch, trigger_rule="all_done", dag=dag)
 
 task2a = PythonOperator(
     task_id="preprocess_stream",
     python_callable=preprocess_stream,
-    op_kwargs={"path", "db/marked_tweets.csv"},
     dag=dag,
 )
 task2b = PythonOperator(
     task_id="preprocess_train",
     python_callable=preprocess_train,
+    op_kwargs={"path", "./db/marked_tweets.csv"},
     dag=dag,
 )
 
@@ -62,15 +71,15 @@ task2b = PythonOperator(
 task2c = PythonOperator(
     task_id="train_model",
     python_callable=train_model_and_save,
-    op_kwargs={"path", "db/marked_tweets.csv"},
+    op_kwargs={"tokenizer": tokenizer, "model": model},
     dag=dag,
 )
-task2d = DummyOperator(task_id="merger", trigger_rule=TriggerRule.ONE_SUCCESS, dag=dag)
+task2d = DummyOperator(task_id="merge_branches", trigger_rule=TriggerRule.ONE_SUCCESS, dag=dag)
 
 task2e = PythonOperator(
     task_id="predict_stream",
     python_callable=predict,
-    op_kwargs={"model_path", "models/sentiment_model_2022-08-28"},
+    op_kwargs={"model_path": "./models/sentiment_model_2022-08-28", "tokenizer": tokenizer},
     dag=dag,
 )
 task2a >> branch_task

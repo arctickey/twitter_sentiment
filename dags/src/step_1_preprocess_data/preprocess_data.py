@@ -29,8 +29,11 @@ def read_external_data(path: str) -> pd.DataFrame:
 
 def preprocess_stream() -> pd.DataFrame:
     df = read_from_postgress(Config.RAW_TABLE_NAME)
-    df = clean_text(df, "text")
-    save_to_postgress(df, Config.PROCESSED_TABLE_NAME, if_exists="append")
+    df_already_processed = read_from_postgress(Config.PROCESSED_TABLE_NAME)
+    df_to_process = df.merge(df_already_processed, on="id", how="left", indicator=True)
+    df_to_process = df_to_process.loc[df_to_process["_merge"] == "left_only", "id"]
+    df_to_process = clean_text(df_to_process, "text")
+    save_to_postgress(df_to_process, Config.PROCESSED_TABLE_NAME, if_exists="append")
 
 
 def preprocess_train(path: str) -> pd.DataFrame:

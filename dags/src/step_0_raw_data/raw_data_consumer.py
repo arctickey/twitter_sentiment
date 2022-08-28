@@ -47,8 +47,8 @@ class TweetConsumer:
                 StructField("data", schema, True),
             ]
         )
-        values = df.select([F.from_json(df.value.cast("string"), schema).alias("tweet"), "timestamp"])
-        df_out = values.select(*["tweet.data.text", "timestamp"])
+        values = df.select([F.from_json(df.value.cast("string"), schema).alias("tweet")])
+        df_out = values.select(*["tweet.data.text"])
         df_cleaned = self.clean_tweets(df_out)
         query = df_cleaned.writeStream.queryName("append_tweets").foreachBatch(self._append_to_db).start()
         query.awaitTermination()
