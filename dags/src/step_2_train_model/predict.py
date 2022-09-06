@@ -2,10 +2,10 @@ import numpy as np
 from src.config import Config
 from src.step_2_train_model.train_model import Dataset
 from src.utils import read_from_postgress, save_to_postgress
-from transformers import BertForSequenceClassification, Trainer
+from transformers import BertForSequenceClassification, BertTokenizer, Trainer
 
 
-def predict(model_path: str, tokenizer) -> None:
+def predict(model_path: str, tokenizer: BertTokenizer) -> None:
     test = read_from_postgress(Config.PROCESSED_TABLE_NAME)
     model = BertForSequenceClassification.from_pretrained(model_path, num_labels=2)
     X_test = list(test["text"])

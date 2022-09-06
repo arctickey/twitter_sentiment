@@ -6,10 +6,16 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from src.config import Config
 from src.utils import read_from_postgress
-from transformers import EarlyStoppingCallback, Trainer, TrainingArguments
+from transformers import (
+    BertForSequenceClassification,
+    BertTokenizer,
+    EarlyStoppingCallback,
+    Trainer,
+    TrainingArguments,
+)
 
 
-def compute_metrics(predictions):
+def compute_metrics(predictions: tuple[np.ndarray]) -> dict[str, int]:
     pred, labels = predictions
     pred = np.argmax(pred, axis=1)
 
@@ -35,7 +41,7 @@ class Dataset(torch.utils.data.Dataset):
         return len(self.encodings["input_ids"])
 
 
-def create_train_val_set(tokenizer):
+def create_train_val_set(tokenizer: BertTokenizer):
     df = read_from_postgress(Config.TRAIN_TABLE_NAME)
     X = list(df["text"])
     y = list(df["label"])
@@ -59,7 +65,7 @@ args = TrainingArguments(
 )
 
 
-def train_model_and_save(tokenizer, model) -> None:
+def train_model_and_save(tokenizer: BertTokenizer, model: BertForSequenceClassification) -> None:
     train_dataset, val_dataset = create_train_val_set(tokenizer)
     trainer = Trainer(
         model=model,

@@ -61,6 +61,7 @@ exclude = '''
 profile = "black"
 
 [tool.mypy]
+ignore_missing_imports = "True"
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"
 no_implicit_optional = "True"
