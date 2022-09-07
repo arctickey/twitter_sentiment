@@ -5,6 +5,8 @@ services:
             context: .
             dockerfile: ./Dockerfile
         container_name: app
+        env_file:
+            - .env
         volumes:
             - ..:/workspace
         entrypoint: ''
