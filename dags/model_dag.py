@@ -32,7 +32,7 @@ default_args = {
 }
 
 
-model_path = "./models/bert-base-uncased/"
+model_path = "./models/bert-tiny/"
 tokenizer = BertTokenizer.from_pretrained(model_path, local_files_only=True)
 
 model = BertForSequenceClassification.from_pretrained(model_path, num_labels=2, local_files_only=True)
@@ -46,7 +46,7 @@ dag = DAG(
 )
 
 
-def branch():
+def branch() -> str:
     if Config.RETRAIN_MODEL:
         return "preprocess_train"
     else:
@@ -63,7 +63,7 @@ task2a = PythonOperator(
 task2b = PythonOperator(
     task_id="preprocess_train",
     python_callable=preprocess_train,
-    op_kwargs={"path", "./db/marked_tweets.csv"},
+    op_kwargs={"path": "./db/marked_tweets.csv"},
     dag=dag,
 )
 
@@ -79,7 +79,7 @@ task2d = DummyOperator(task_id="merge_branches", trigger_rule=TriggerRule.ONE_SU
 task2e = PythonOperator(
     task_id="predict_stream",
     python_callable=predict,
-    op_kwargs={"model_path": "./models/sentiment_model_2022-08-28", "tokenizer": tokenizer},
+    op_kwargs={"model_path": model_path, "tokenizer": tokenizer},
     dag=dag,
 )
 task2a >> branch_task

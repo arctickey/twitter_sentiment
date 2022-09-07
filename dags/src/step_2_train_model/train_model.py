@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any, Union
 
 import numpy as np
 import torch
@@ -15,7 +16,7 @@ from transformers import (
 )
 
 
-def compute_metrics(predictions: tuple[np.ndarray]) -> dict[str, int]:
+def compute_metrics(predictions: tuple[np.ndarray, np.ndarray]) -> dict[str, int]:
     pred, labels = predictions
     pred = np.argmax(pred, axis=1)
 
@@ -27,21 +28,21 @@ def compute_metrics(predictions: tuple[np.ndarray]) -> dict[str, int]:
 
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self, encodings, labels=None):
+    def __init__(self, encodings: dict, labels: Union[None, np.ndarray] = None):
         self.encodings = encodings
         self.labels = labels
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> dict[Any, Any]:
         item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
         if self.labels:
             item["labels"] = torch.tensor(self.labels[idx])
         return item
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.encodings["input_ids"])
 
 
-def create_train_val_set(tokenizer: BertTokenizer):
+def create_train_val_set(tokenizer: BertTokenizer) -> tuple[Dataset, Dataset]:
     df = read_from_postgress(Config.TRAIN_TABLE_NAME)
     X = list(df["text"])
     y = list(df["label"])
@@ -55,10 +56,11 @@ def create_train_val_set(tokenizer: BertTokenizer):
 
 args = TrainingArguments(
     output_dir="output",
+    disable_tqdm=False,
     evaluation_strategy="steps",
     eval_steps=500,
-    per_device_train_batch_size=8,
-    per_device_eval_batch_size=8,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=16,
     num_train_epochs=3,
     seed=0,
     load_best_model_at_end=True,
@@ -66,7 +68,7 @@ args = TrainingArguments(
 
 
 def train_model_and_save(tokenizer: BertTokenizer, model: BertForSequenceClassification) -> None:
-    train_dataset, val_dataset = create_train_val_set(tokenizer)
+    train_dataset, val_dataset = create_train_val_set(tokenizer=tokenizer)
     trainer = Trainer(
         model=model,
         args=args,

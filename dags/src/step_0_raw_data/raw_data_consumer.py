@@ -1,13 +1,10 @@
 import json
-import logging
 
 import pyspark.sql.functions as F
 from kafka import KafkaConsumer
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StringType, StructField, StructType
 from src.config import Config
-
-log = logging.getLogger("root").setLevel(logging.ERROR)
 
 
 class TweetConsumer:
