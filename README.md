@@ -13,7 +13,7 @@ Project to analyze tweets sentiment
 - **Github repository**: <https://github.com/fpgmaas/twitter-sentiment/>
 - **Documentation** <https://fpgmaas.github.io/twitter-sentiment/>
 
-## Releasing a new version
+A project to collect tweets using the Tweepy package, store them in a database and then predict their sentiment using the BERT algorithm. The whole flow is automated using Apache Airflow.
 
 
 
