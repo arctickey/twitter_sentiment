@@ -31,6 +31,7 @@ class TweetConsumer:
         )
 
     def consume_tweets(self) -> None:
+        """Fetch tweets from Kafka, preprocess them and save to database"""
         df = (
             self.spark.readStream.format("kafka")
             .option("kafka.bootstrap.servers", "kafka:9092")
@@ -51,12 +52,14 @@ class TweetConsumer:
         query.awaitTermination()
 
     def clean_tweets(self, tweets: DataFrame) -> DataFrame:
+        """Clean tweets from obsolete text"""
         strings_to_sub = ["http\S+", "bit\.ly\S+", "(RT\s@[A-Za-z]+[A-Za-z0-9-_]+)", "(@[A-Za-z]+[A-Za-z0-9-_]+)"]
         tweets = tweets.withColumn("text", F.regexp_replace("text", "|".join(strings_to_sub), ""))
         tweets = tweets.withColumn("text", F.trim(F.col("text")))
         return tweets
 
     def _append_to_db(self, df: DataFrame, epoch_id: int) -> None:
+        """Helper function to save to database"""
         df.write.mode("append").format("jdbc").option("url", "jdbc:postgresql://db:5432/db").option(
             "dbtable", Config.RAW_TABLE_NAME
         ).option("user", "admin").option("password", "admin").option("driver", "org.postgresql.Driver").save()

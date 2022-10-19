@@ -1,2 +1,2 @@
-def test_foo() -> None:
+def test_pandas_clean_text() -> None:
     assert True

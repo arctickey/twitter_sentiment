@@ -9,6 +9,7 @@ log = logging.getLogger("root")
 
 class MyStreamListener(tweepy.StreamingClient):
     def __init__(self, bearer_token: str, topic_name: str) -> None:
+        """Fetch tweets from API and pull to Kafka"""
         super().__init__(bearer_token)
         self.producer = KafkaProducer(bootstrap_servers="kafka:9092", api_version=(0, 10, 2))
         self.topic_name = topic_name

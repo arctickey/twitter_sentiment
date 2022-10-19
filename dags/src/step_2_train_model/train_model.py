@@ -17,6 +17,7 @@ from transformers import (
 
 
 def compute_metrics(predictions: tuple[np.ndarray, np.ndarray]) -> dict[str, int]:
+    """Compute metrics for BERT model"""
     pred, labels = predictions
     pred = np.argmax(pred, axis=1)
 
@@ -28,6 +29,8 @@ def compute_metrics(predictions: tuple[np.ndarray, np.ndarray]) -> dict[str, int
 
 
 class Dataset(torch.utils.data.Dataset):
+    """Create Dataset object needed to train BERT model"""
+
     def __init__(self, encodings: dict, labels: Union[None, np.ndarray] = None):
         self.encodings = encodings
         self.labels = labels
@@ -43,6 +46,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 def create_train_val_set(tokenizer: BertTokenizer) -> tuple[Dataset, Dataset]:
+    """Split external csv file into train and test set"""
     df = read_from_postgress(Config.TRAIN_TABLE_NAME)
     X = list(df["text"])
     y = list(df["label"])
@@ -68,6 +72,7 @@ args = TrainingArguments(
 
 
 def train_model_and_save(tokenizer: BertTokenizer, model: BertForSequenceClassification) -> None:
+    """Perform training of the model and save it to /models directory"""
     train_dataset, val_dataset = create_train_val_set(tokenizer=tokenizer)
     trainer = Trainer(
         model=model,

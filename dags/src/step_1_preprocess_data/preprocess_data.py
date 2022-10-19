@@ -11,6 +11,7 @@ log.addHandler(TweetLogger())
 
 
 def clean_text(df: pd.DataFrame, text_column: str) -> pd.DataFrame:
+    """Function to clean tweets from obsolete text and trim to maximal tweet length"""
     df[text_column] = (
         df.loc[:, text_column]
         .str.replace("\n", "", regex=False)
@@ -26,6 +27,7 @@ def clean_text(df: pd.DataFrame, text_column: str) -> pd.DataFrame:
 
 
 def read_external_data(path: str) -> pd.DataFrame:
+    """Read external csv file with data and select necessary columns for further processing"""
     df = pd.read_csv(path, encoding="ISO-8859-1", header=None)
     df.columns = ["label", "time", "date", "query", "username", "text"]
     df = df.loc[:, ["label", "text"]]
@@ -34,11 +36,13 @@ def read_external_data(path: str) -> pd.DataFrame:
 
 
 def preprocess_stream() -> None:
+    """Fetch, clean and save stream data. Only tweets which were not processed yet, are cleaned and saved"""
     df = read_from_postgress(Config.RAW_TABLE_NAME)
     if db_table_exists(table=Config.PROCESSED_TABLE_NAME):
         df_already_processed = read_from_postgress(table=Config.PROCESSED_TABLE_NAME)
-        df_to_process = df.merge(df_already_processed, on="id", how="left", indicator=True)
-        df_to_process = df_to_process.loc[df_to_process["_merge"] == "left_only", "id"]
+        df_to_process = df.merge(df_already_processed, on="id", how="left", indicator=True, suffixes=("", "_y"))
+        df_to_process = df_to_process.loc[df_to_process["_merge"] == "left_only", ["text", "id", "timestamp"]]
+        df_to_process = df_to_process[~df_to_process["text"].isnull()]
     else:
         log.info("Processed table does not exist, creating new.")
         df_to_process = df
@@ -48,6 +52,7 @@ def preprocess_stream() -> None:
 
 
 def preprocess_train(path: str) -> None:
+    """Fetch, clean and save external training data"""
     df = read_external_data(path=path)
     df = clean_text(df=df, text_column="text")
     save_to_postgress(df=df, table=Config.TRAIN_TABLE_NAME, if_exists="replace")

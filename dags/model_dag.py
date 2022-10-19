@@ -1,12 +1,12 @@
 # %%
 import logging
+from ast import literal_eval
 
 import airflow
 from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.models import Variable
 from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 from airflow.utils.trigger_rule import TriggerRule
-from src.config import Config
 from src.logger import TweetLogger
 from src.step_1_preprocess_data.preprocess_data import (
     preprocess_stream,
@@ -41,13 +41,13 @@ model = BertForSequenceClassification.from_pretrained(model_path, num_labels=2, 
 dag = DAG(
     "tweets_sentiment_predictor",
     description="Preprocess tweets and determine sentiment",
-    schedule_interval="*/10 * * * *",
+    schedule_interval="*/30 * * * *",
     default_args=default_args,
 )
 
 
 def branch() -> str:
-    if Config.RETRAIN_MODEL:
+    if literal_eval(Variable.get("retrain_model")):
         return "preprocess_train"
     else:
         return "predict_stream"
@@ -74,15 +74,13 @@ task2c = PythonOperator(
     op_kwargs={"tokenizer": tokenizer, "model": model},
     dag=dag,
 )
-task2d = DummyOperator(task_id="merge_branches", trigger_rule=TriggerRule.ONE_SUCCESS, dag=dag)
-
 task2e = PythonOperator(
     task_id="predict_stream",
     python_callable=predict,
     op_kwargs={"model_path": model_path, "tokenizer": tokenizer},
+    trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag,
 )
 task2a >> branch_task
-branch_task >> task2b >> task2c >> task2d
-branch_task >> task2d
-task2d >> task2e
+branch_task >> task2b >> task2c >> task2e
+branch_task >> task2e
