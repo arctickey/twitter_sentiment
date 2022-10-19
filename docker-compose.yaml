@@ -5,6 +5,8 @@ services:
             context: .
             dockerfile: ./Dockerfile
         container_name: app
+        env_file:
+            - .env
         volumes:
             - ..:/workspace
         entrypoint: ''
@@ -13,6 +15,8 @@ services:
         image: postgres:9.6
         container_name: db
         user: root
+        ports:
+            - "5432:5432"
         environment:
             - POSTGRES_USER=admin
             - POSTGRES_PASSWORD=admin
@@ -53,6 +57,9 @@ services:
             - .env
         volumes:
             - ./dags:/opt/airflow/dags
+            - ./db:/opt/airflow/db
+            - ./models:/opt/airflow/models
+            - ./logs:/opt/airflow/logs
     webserver:
         build: './airflow_docker'
         command: bash -c "airflow db init && airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin && airflow webserver"
@@ -64,6 +71,9 @@ services:
             - .env
         volumes:
             - ./dags:/opt/airflow/dags
+            - ./db:/opt/airflow/db
+            - ./models:/opt/airflow/models
+            - ./logs:/opt/airflow/logs
         ports:
             - "8080:8080"
     spark:

@@ -1,12 +1,10 @@
 import json
-import logging
 
 import pyspark.sql.functions as F
 from kafka import KafkaConsumer
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StringType, StructField, StructType
-
-log = logging.getLogger("root").setLevel(logging.ERROR)
+from src.config import Config
 
 
 class TweetConsumer:
@@ -33,6 +31,7 @@ class TweetConsumer:
         )
 
     def consume_tweets(self) -> None:
+        """Fetch tweets from Kafka, preprocess them and save to database"""
         df = (
             self.spark.readStream.format("kafka")
             .option("kafka.bootstrap.servers", "kafka:9092")
@@ -46,19 +45,21 @@ class TweetConsumer:
                 StructField("data", schema, True),
             ]
         )
-        values = df.select([F.from_json(df.value.cast("string"), schema).alias("tweet"), "timestamp"])
-        df_out = values.select(*["tweet.data.text", "timestamp"])
+        values = df.select([F.from_json(df.value.cast("string"), schema).alias("tweet")])
+        df_out = values.select(*["tweet.data.text"])
         df_cleaned = self.clean_tweets(df_out)
         query = df_cleaned.writeStream.queryName("append_tweets").foreachBatch(self._append_to_db).start()
         query.awaitTermination()
 
     def clean_tweets(self, tweets: DataFrame) -> DataFrame:
+        """Clean tweets from obsolete text"""
         strings_to_sub = ["http\S+", "bit\.ly\S+", "(RT\s@[A-Za-z]+[A-Za-z0-9-_]+)", "(@[A-Za-z]+[A-Za-z0-9-_]+)"]
         tweets = tweets.withColumn("text", F.regexp_replace("text", "|".join(strings_to_sub), ""))
         tweets = tweets.withColumn("text", F.trim(F.col("text")))
         return tweets
 
     def _append_to_db(self, df: DataFrame, epoch_id: int) -> None:
+        """Helper function to save to database"""
         df.write.mode("append").format("jdbc").option("url", "jdbc:postgresql://db:5432/db").option(
-            "dbtable", "tweets"
+            "dbtable", Config.RAW_TABLE_NAME
         ).option("user", "admin").option("password", "admin").option("driver", "org.postgresql.Driver").save()

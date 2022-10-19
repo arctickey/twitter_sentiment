@@ -5,3 +5,4 @@ git config --global user.email "${GIT_EMAIL}"
 git config --global --add url."git@github.com:".insteadOf "https://github.com/"
 poetry self update
 poetry install --no-interaction
+chmod u=rwx,g=rwx,o=rwx ./logs #airflow fix

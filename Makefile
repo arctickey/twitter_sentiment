@@ -20,7 +20,7 @@ check: ## Check code formatting using isort, black, flake8 and mypy.
 
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
-	@pytest --doctest-modules
+	@pytest .
 
 build: clean-build ## Build wheel file using poetry
 	@echo "🚀 Creating wheel file"
@@ -30,7 +30,7 @@ clean-build: ## clean build artifacts
 	@rm -rf dist
 
 docs-test: ## Test if documentation can be built without warnings or errors
-	@mkdocs build -s
+	@mkdocs build
 
 docs: ## Build and serve the documentation
 	@mkdocs serve

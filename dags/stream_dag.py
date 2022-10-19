@@ -8,8 +8,8 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from src.config import Config
 from src.logger import TweetLogger
-from src.raw_data.raw_data_consumer import TweetConsumer
-from src.raw_data.raw_data_producer import TweetProducer
+from src.step_0_raw_data.raw_data_consumer import TweetConsumer
+from src.step_0_raw_data.raw_data_producer import TweetProducer
 
 # %%
 

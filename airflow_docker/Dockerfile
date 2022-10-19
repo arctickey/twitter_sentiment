@@ -10,10 +10,7 @@ RUN apt update && \
 # Set JAVA_HOME
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
 RUN export JAVA_HOME
-
 USER airflow
-
-WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --user -r requirements.txt

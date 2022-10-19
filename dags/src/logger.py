@@ -2,7 +2,7 @@ import logging
 
 
 class TweetLogger(logging.StreamHandler):
-    def __init__(self):
+    def __init__(self) -> None:
         logging.StreamHandler.__init__(self)
         fmt = "%(asctime)s %(filename)-18s %(levelname)-8s: %(message)s"
         fmt_date = "%Y-%m-%dT%T%Z"
